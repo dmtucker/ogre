@@ -22,11 +22,11 @@ from snowflake2time.snowflake import snowflake2utc, utc2snowflake
 
 def sanitize_twitter(
         keys,
-        media=("image", "text"),
-        keyword="",
+        media=('image', 'text'),
+        keyword='',
         quantity=15,
         location=None,
-        interval=None
+        interval=None,
 ):  # pylint: disable=too-many-arguments,too-many-locals
 
     """
@@ -67,21 +67,13 @@ def sanitize_twitter(
     clean_keys = {}
     for key, value in keys.items():
         key = key.lower()
-        if key not in (
-                "consumer_key",
-                "access_token"
-        ):
-            raise ValueError(
-                'Valid Twitter keys are "consumer_key" and "access_token".'
-            )
+        if key not in ('consumer_key', 'access_token'):
+            raise ValueError('Valid Twitter keys are "consumer_key" and "access_token".')
         if not value:
-            raise ValueError("Twitter API keys are required.")
+            raise ValueError('Twitter API keys are required.')
         clean_keys[key] = value
-    if "consumer_key" not in clean_keys.keys() or \
-       "access_token" not in clean_keys.keys():
-        raise ValueError(
-            'Twitter API keys must include a "consumer_key" and "access_token".'
-        )
+    if 'consumer_key' not in clean_keys.keys() or 'access_token' not in clean_keys.keys():
+        raise ValueError('Twitter API keys must include a "consumer_key" and "access_token".')
 
     clean_media, clean_keyword, clean_quantity, clean_location, clean_interval = \
         sanitize(
@@ -89,39 +81,39 @@ def sanitize_twitter(
             keyword=keyword,
             quantity=quantity,
             location=location,
-            interval=interval
+            interval=interval,
         )
 
     kinds = []
     if clean_media is not None:
         for clean_medium in clean_media:
-            if clean_medium in ("image", "text"):
+            if clean_medium in ('image', 'text'):
                 kinds.append(clean_medium)
     kinds = tuple(kinds)  # pylint: disable=redefined-variable-type
 
     keywords = clean_keyword
-    if kinds == ("image",):
-        keywords += "  pic.twitter.com"
-    elif kinds == ("text",):
-        keywords += " -pic.twitter.com"
+    if kinds == ('image',):
+        keywords += '  pic.twitter.com'
+    elif kinds == ('text',):
+        keywords += ' -pic.twitter.com'
     keywords = keywords.strip()
 
     geocode = None
     if location is not None and clean_location[2] > 0:
         geocode = \
-            str(clean_location[0]) + "," +\
-            str(clean_location[1]) + "," +\
-            str(clean_location[2])+clean_location[3]
+            str(clean_location[0]) + ',' +\
+            str(clean_location[1]) + ',' +\
+            str(clean_location[2]) + clean_location[3]
 
     period_id = (None, None)
     if interval is not None:
         period_id = (
             utc2snowflake(clean_interval[0]),
-            utc2snowflake(clean_interval[1])
+            utc2snowflake(clean_interval[1]),
         )
 
-    if keywords in ("", "-pic.twitter.com") and geocode is None:
-        raise ValueError("Specify either a keyword or a location.")
+    if keywords in ('', '-pic.twitter.com') and geocode is None:
+        raise ValueError('Specify either a keyword or a location.')
 
     return (
         clean_keys,
@@ -129,14 +121,14 @@ def sanitize_twitter(
         keywords,
         clean_quantity,
         geocode,
-        period_id
+        period_id,
     )
 
 
 def twitter(
         keys,
-        media=("image", "text"),
-        keyword="",
+        media=('image', 'text'),
+        keyword='',
         quantity=15,
         location=None,
         interval=None,
@@ -241,81 +233,64 @@ def twitter(
             keyword=keyword,
             quantity=quantity,
             location=location,
-            interval=interval
+            interval=interval,
         )
 
     modifiers = {
-        "api": Twython,
-        "fail_hard": False,
-        "network": urlopen,
-        "query_limit": 450,  # Twitter allows 450 queries every 15 minutes.
-        "secure": True,
-        "strict_media": False
+        'api': Twython,
+        'fail_hard': False,
+        'network': urlopen,
+        'query_limit': 450,  # Twitter allows 450 queries every 15 minutes.
+        'secure': True,
+        'strict_media': False,
     }
     for modifier in modifiers:
         if kwargs.get(modifier) is not None:
             modifiers[modifier] = kwargs[modifier]
 
     qid = hashlib.md5(
-        (
-            str(time.time()) +
-            str(keywords) +
-            str(remaining) +
-            str(geocode) +
-            str(since_id) +
-            str(max_id) +
-            str(kwargs)
-        ).encode('utf-8')
+        ''.join(
+            map(str, (time.time(), keywords, remaining, geocode, since_id, max_id, kwargs)),
+        ).encode('utf-8'),
     ).hexdigest()
 
     log = logging.getLogger(__name__)
-    log.info(qid+" Request: Twitter")
+    log.info(qid + ' Request: Twitter')
     log.debug(
-        qid+" Status:" +
-        " media("+str(media)+")" +
-        " keyword("+str(keywords)+")" +
-        " quantity("+str(remaining)+")" +
-        " location("+str(geocode)+")" +
-        " interval("+str(since_id)+","+str(max_id)+")" +
-        " kwargs("+str(kwargs)+")"
+        qid + ' Status:' +
+        ' media(' + str(media)+')' +
+        ' keyword(' + str(keywords) + ')' +
+        ' quantity(' + str(remaining) + ')' +
+        ' location(' + str(geocode) + ')' +
+        ' interval(' + str(since_id) + ',' + str(max_id) + ')' +
+        ' kwargs(' + str(kwargs) + ')',
     )
 
-    if not kinds or remaining < 1 or modifiers["query_limit"] < 1:
-        log.info(qid+" Success: No results were requested.")
+    if not kinds or remaining < 1 or modifiers['query_limit'] < 1:
+        log.info(qid + ' Success: No results were requested.')
         return []
 
-    api = modifiers["api"](
-        keychain["consumer_key"],
-        access_token=keychain["access_token"]
-    )
+    api = modifiers['api'](keychain['consumer_key'], access_token=keychain['access_token'])
 
     limits = api.get_application_rate_limit_status()
     try:
-        limit = int(
-            limits["resources"]["search"]["/search/tweets"]["remaining"]
-        )
-        reset = int(
-            limits["resources"]["search"]["/search/tweets"]["reset"]
-        )
+        limit = int(limits['resources']['search']['/search/tweets']['remaining'])
+        reset = int(limits['resources']['search']['/search/tweets']['reset'])
         if limit < 1:
-            message = "Queries are being limited."
-            log.info(qid+" Failure: "+message)
-            if modifiers["fail_hard"]:
-                raise OGReLimitError(
-                    source="Twitter",
-                    message=message,
-                    reset=reset
-                )
+            message = 'Queries are being limited.'
+            log.info(qid + ' Failure: ' + message)
+            if modifiers['fail_hard']:
+                raise OGReLimitError(source='Twitter', message=message, reset=reset)
         else:
-            log.debug(qid+" Status: "+str(limit)+" queries remain.")
-        if limit < modifiers["query_limit"]:
-            modifiers["query_limit"] = limit
+            log.debug(qid + ' Status: ' + str(limit) + ' queries remain.')
+        if limit < modifiers['query_limit']:
+            modifiers['query_limit'] = limit
     except KeyError:
-        log.warning(qid+" Unobtainable Rate Limit")
+        log.warning(qid + ' Unobtainable Rate Limit')
     total = remaining
 
     collection = []
-    for query in range(modifiers["query_limit"]):  # pylint: disable=too-many-nested-blocks
+    for query in range(modifiers['query_limit']):  # pylint: disable=too-many-nested-blocks
         count = min(remaining, 100)  # Twitter accepts a max count of 100.
         try:
             results = api.search(
@@ -323,103 +298,98 @@ def twitter(
                 count=count,
                 geocode=geocode,
                 since_id=since_id,
-                max_id=max_id
+                max_id=max_id,
             )
         except:
             log.info(
-                qid+" Failure: " +
-                str(query+1)+" queries produced " +
-                str(len(collection))+" results. " +
-                str(sys.exc_info()[1])
+                qid + ' Failure: ' +
+                str(query + 1) + ' queries produced ' +
+                str(len(collection)) + ' results. ' +
+                str(sys.exc_info()[1]),
             )
             raise
-        if results.get("statuses") is None:
-            message = "The request is too complex."
+        if results.get('statuses') is None:
+            message = 'The request is too complex.'
             log.info(
-                qid+" Failure: " +
-                str(query+1)+" queries produced " +
-                str(len(collection))+" results. " +
-                message
+                qid + ' Failure: ' +
+                str(query + 1) + ' queries produced ' +
+                str(len(collection)) + ' results. ' +
+                message,
             )
-            if modifiers["fail_hard"]:
-                raise OGReError(source="Twitter", message=message)
+            if modifiers['fail_hard']:
+                raise OGReError(source='Twitter', message=message)
             break
-        for tweet in results["statuses"]:
-            if tweet.get("coordinates") is None or tweet.get("id") is None:
+        for tweet in results['statuses']:
+            if tweet.get('coordinates') is None or tweet.get('id') is None:
                 # Tweets must be geotagged and timestamped.
                 continue
             feature = {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [
-                        tweet["coordinates"]["coordinates"][0],
-                        tweet["coordinates"]["coordinates"][1]
-                    ]
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [
+                        tweet['coordinates']['coordinates'][0],
+                        tweet['coordinates']['coordinates'][1],
+                    ],
                 },
-                "properties": {
-                    "source": "Twitter",
-                    "time": datetime.utcfromtimestamp(
-                        snowflake2utc(tweet["id"])
-                    ).isoformat()+"Z"
-                }
+                'properties': {
+                    'source': 'Twitter',
+                    'time': datetime.utcfromtimestamp(snowflake2utc(tweet['id'])).isoformat() + 'Z',
+                },
             }
-            if "text" in kinds:
-                if tweet.get("text") is not None:
-                    feature["properties"]["text"] = tweet["text"]
-            if "image" in kinds:
-                if not modifiers["strict_media"]:
-                    if tweet.get("text") is not None:
-                        feature["properties"]["text"] = tweet["text"]
-                if tweet.get("entities", {}).get("media") is not None:
-                    for entity in tweet["entities"]["media"]:
-                        if entity.get("type") is not None:
-                            if entity["type"].lower() == "photo":
-                                media_url = "media_url_https"
-                                if not modifiers["secure"]:
-                                    media_url = "media_url"
+            if 'text' in kinds:
+                if tweet.get('text') is not None:
+                    feature['properties']['text'] = tweet['text']
+            if 'image' in kinds:
+                if not modifiers['strict_media']:
+                    if tweet.get('text') is not None:
+                        feature['properties']['text'] = tweet['text']
+                if tweet.get('entities', {}).get('media') is not None:
+                    for entity in tweet['entities']['media']:
+                        if entity.get('type') is not None:
+                            if entity['type'].lower() == 'photo':
+                                media_url = 'media_url_https'
+                                if not modifiers['secure']:
+                                    media_url = 'media_url'
                                 if entity.get(media_url) is not None:
-                                    feature["properties"]["image"] =\
+                                    feature['properties']['image'] =\
                                         base64.b64encode(
-                                            modifiers["network"](
-                                                entity[media_url]
-                                            ).read().encode('utf-8')
+                                            modifiers['network'](entity[media_url])
+                                            .read()
+                                            .encode('utf-8')
                                         )
-            if len(feature["properties"]) > 2:
+            if len(feature['properties']) > 2:
                 collection.append(feature)
         remained = remaining
-        remaining = total-len(collection)
-        log.debug(
-            qid+" Status:" +
-            " 1 query produced "+str(remained-remaining)+" results."
-        )
+        remaining = total - len(collection)
+        log.debug(qid + ' Status:' + ' 1 query produced ' + str(remained-remaining) + ' results.')
         if remaining <= 0:
             log.info(
-                qid+" Success: " +
-                str(query+1)+" queries produced " +
-                str(len(collection))+" results."
+                qid + ' Success: ' +
+                str(query+1) + ' queries produced ' +
+                str(len(collection)) + ' results.',
             )
             break
-        if results.get("search_metadata", {}).get("next_results") is None:
-            outcome = "Success" if len(collection) > 0 else "Failure"
+        if results.get('search_metadata', {}).get('next_results') is None:
+            outcome = 'Success' if len(collection) > 0 else 'Failure'
             log.info(
-                qid+" "+outcome+": " +
-                str(query+1)+" queries produced " +
-                str(len(collection))+" results. " +
-                "No retrievable results remain."
+                qid + ' ' + outcome + ': ' +
+                str(query+1) + ' queries produced ' +
+                str(len(collection)) + ' results. ' +
+                'No retrievable results remain.',
             )
             break
         max_id = int(
-            results["search_metadata"]["next_results"]
-            .split("max_id=")[1]
-            .split("&")[0]
+            results['search_metadata']['next_results']
+            .split('max_id=')[1]
+            .split('&')[0],
         )
-        if query+1 >= modifiers["query_limit"]:
-            outcome = "Success" if len(collection) > 0 else "Failure"
+        if query+1 >= modifiers['query_limit']:
+            outcome = 'Success' if len(collection) > 0 else 'Failure'
             log.info(
-                qid+" "+outcome+": " +
-                str(query+1)+" queries produced " +
-                str(len(collection))+" results. " +
-                "No remaining results are retrievable."
+                qid + ' ' + outcome + ': ' +
+                str(query+1) + ' queries produced ' +
+                str(len(collection)) + ' results. ' +
+                'No remaining results are retrievable.',
             )
     return collection
