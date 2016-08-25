@@ -64,16 +64,15 @@ def sanitize_twitter(
     :returns: Each passed parameter is returned (in order) in the proper format.
     """
 
-    clean_keys = {}
-    for key, value in keys.items():
-        key = key.lower()
-        if key not in ('consumer_key', 'access_token'):
-            raise ValueError('Valid Twitter keys are "consumer_key" and "access_token".')
-        if not value:
-            raise ValueError('Twitter API keys are required.')
-        clean_keys[key] = value
-    if 'consumer_key' not in clean_keys.keys() or 'access_token' not in clean_keys.keys():
+    try:
+        clean_keys = {
+            'access_token': str(keys['access_token']),
+            'consumer_key': str(keys['consumer_key']),
+        }
+    except KeyError:
         raise ValueError('Twitter API keys must include a "consumer_key" and "access_token".')
+    except TypeError:
+        raise ValueError('Twitter API keys must be specified as str objects.')
 
     clean_media, clean_keyword, clean_quantity, clean_location, clean_interval = \
         sanitize(
