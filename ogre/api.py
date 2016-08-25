@@ -45,7 +45,7 @@ class OGRe(object):  # pylint: disable=too-few-public-methods
         """
         self.keyring = {}
         for key in keys:
-            if key.lower() not in ["twitter"]:
+            if key.lower() not in ['twitter']:
                 raise ValueError('Keys may include "Twitter" only.')
             self.keyring[key.lower()] = key
         self.keychain = keys
@@ -53,8 +53,8 @@ class OGRe(object):  # pylint: disable=too-few-public-methods
     def fetch(
             self,
             sources,
-            media=("image", "sound", "text", "video"),
-            keyword="",
+            media=('image', 'sound', 'text', 'video'),
+            keyword='',
             quantity=15,
             location=None,
             interval=None,
@@ -103,11 +103,11 @@ class OGRe(object):  # pylint: disable=too-few-public-methods
                   and that is where they are documented.
         """
 
-        source_map = {"twitter": twitter}
+        source_map = {'twitter': twitter}
 
         feature_collection = {
-            "type": "FeatureCollection",
-            "features": [],
+            'type': 'FeatureCollection',
+            'features': [],
         }
         if media and quantity > 0:
             for source in sources:
@@ -123,5 +123,5 @@ class OGRe(object):  # pylint: disable=too-few-public-methods
                         interval=interval,
                         **kwargs
                 ):
-                    feature_collection["features"].append(features)
+                    feature_collection['features'].append(features)
         return feature_collection
