@@ -4,14 +4,12 @@ OGRe Query Handler
 :class:`OGRe` -- retriever object template
 
 :meth:`OGRe.fetch` -- method for making a retriever fetch data
-
-:meth:`OGRe.get` -- alias of :meth:`OGRe.fetch`
 """
 
 from ogre.Twitter import twitter
 
 
-class OGRe(object):
+class OGRe(object):  # pylint: disable=too-few-public-methods
 
     """
     Create objects that contain API keys and API access points.
@@ -25,8 +23,6 @@ class OGRe(object):
     Twython, the Twitter API wrapper, also uses this scheme.
 
     :meth:`fetch` -- method for retrieving data from a public source
-
-    :meth:`get` -- backwards-compatible alias of :meth:`fetch`
     """
 
     def __init__(self, keys):
@@ -129,55 +125,3 @@ class OGRe(object):
                 ):
                     feature_collection["features"].append(features)
         return feature_collection
-
-    def get(
-            self,
-            sources,
-            keyword="",
-            what=("image", "sound", "text", "video"),
-            when=None,
-            where=None,
-            how_many=15,
-            **kwargs
-    ):  # pylint: disable=too-many-arguments
-        """
-        Provide a backwards-compatible alias of :meth:`fetch`.
-
-        .. deprecated: 4.1.0
-           This method has been replaced by :meth:`fetch` which mirrors the
-           interface used by individual source modules (e.g. :mod:`Twitter`).
-
-        :type sources: tuple
-        :param sources: This parameter corresponds directly in :meth:`fetch`.
-
-        :type keyword: str
-        :param keyword: This parameter corresponds directly in :meth:`fetch`.
-
-        :type what: tuple
-        :param what: This parameter corresponds to `media` in :meth:`fetch`.
-
-        :type when: tuple
-        :param when: This parameter corresponds to `interval` in :meth:`fetch`.
-
-        :type where: tuple
-        :param where: This parameter corresponds to `location` in :meth:`fetch`.
-
-        :type how_many: int
-        :param how_many: This parameter corresponds to `quantity` in
-                         :meth:`fetch`.
-
-        :rtype: dict
-        :returns: GeoJSON FeatureCollection
-
-        .. note:: :meth:`get` is deprecated.
-                  :meth:`fetch` should be used instead.
-        """
-        return self.fetch(
-            sources=sources,
-            media=what,
-            keyword=keyword,
-            interval=when,
-            location=where,
-            quantity=how_many,
-            **kwargs
-        )

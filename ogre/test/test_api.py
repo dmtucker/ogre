@@ -157,9 +157,9 @@ class OGReTest(unittest.TestCase):
         self.log.debug("Testing the main entry point to OGRe...")
 
         with self.assertRaises(ValueError):
-            self.retriever.get(("invalid",),)
+            self.retriever.fetch(("invalid",))
         with self.assertRaises(ValueError):
-            self.retriever.get(("Twitter", "invalid"),)
+            self.retriever.fetch(("Twitter", "invalid"))
 
         self.assertEqual(
             self.retriever.fetch(sources=()),
