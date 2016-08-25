@@ -109,19 +109,19 @@ class OGRe(object):  # pylint: disable=too-few-public-methods
             'type': 'FeatureCollection',
             'features': [],
         }
-        if media and quantity > 0:
-            for source in sources:
-                source = source.lower()
-                if source not in source_map:
-                    raise ValueError('Source may be "Twitter".')
-                for features in source_map[source](
-                        keys=self.keychain[self.keyring[source]],
-                        media=media,
-                        keyword=keyword,
-                        quantity=quantity,
-                        location=location,
-                        interval=interval,
-                        **kwargs
-                ):
-                    feature_collection['features'].append(features)
+        for source in sources:
+            source = source.lower()
+            if source not in source_map:
+                raise ValueError('Source may be "Twitter".')
+            feature_collection['features'].extend(
+                source_map[source](
+                    keys=self.keychain[self.keyring[source]],
+                    media=media,
+                    keyword=keyword,
+                    quantity=quantity,
+                    location=location,
+                    interval=interval,
+                    **kwargs
+                ),
+            )
         return feature_collection
