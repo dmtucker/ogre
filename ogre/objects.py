@@ -10,7 +10,7 @@ OGRe Parameter Validator
 import collections
 
 
-Interval = collections.namedtuple('Interval', ('earliest', 'latest'))
+Interval = collections.namedtuple('Interval', ('earliest', 'latest'))  # POSIX timestamps
 
 
 def validate_interval(interval):

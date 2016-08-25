@@ -15,7 +15,7 @@ except ImportError:
     from urllib2 import urlopen  # pylint: disable=import-error
 from datetime import datetime
 from twython import Twython
-from ogre.validation import sanitize
+from ogre.objects import sanitize
 from ogre.exceptions import OGReError, OGReLimitError
 from snowflake2time.snowflake import snowflake2utc, utc2snowflake
 

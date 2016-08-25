@@ -10,7 +10,7 @@ OGRe Parameter Validator Tests
 
 import logging
 import unittest
-from ogre.validation import validate, sanitize
+from ogre.objects import validate, sanitize
 
 
 class ValidationTest(unittest.TestCase):
