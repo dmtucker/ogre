@@ -7,6 +7,61 @@ OGRe Parameter Validator
 """
 
 
+import collections
+
+
+Interval = collections.namedtuple('Interval', ('earliest', 'latest'))
+
+
+def validate_interval(interval):
+    """Ensure Interval invariants."""
+
+    float(interval.earliest)
+    assert interval.earliest >= 0
+
+    float(interval.latest)
+    assert interval.latest >= 0
+
+
+Location = collections.namedtuple('Location', ('latitude', 'longitude', 'radius', 'unit'))
+
+
+def validate_location(location):
+    """Ensure Location invariants."""
+
+    float(location.latitude)
+    assert -90 <= location.latitude <= 90
+
+    float(location.longitude)
+    assert -180 <= location.latitude <= 180
+
+    float(location.radius)
+    assert location.radius > 0
+
+    str(location.unit)
+    assert location.unit in ('km', 'mi')
+
+
+Query = collections.namedtuple('Query', ('media', 'keyword', 'quantity', 'location', 'interval'))
+
+
+def validate_query(query):
+    """Ensure Query invariants."""
+
+    assert all([True for medium in query.media if medium in ('image', 'sound', 'text', 'video')])
+
+    str(query.keyword)
+
+    int(query.quantity)
+    assert query.quantity >= 0
+
+    if query.location is not None:
+        validate_location(query.location)
+
+    if query.interval is not None:
+        validate_interval(query.interval)
+
+
 def validate(
         media=("image", "sound", "text", "video"),
         keyword="",
