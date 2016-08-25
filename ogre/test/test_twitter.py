@@ -259,7 +259,7 @@ class TwitterTest(unittest.TestCase):
                     self.retriever.keyring["twitter"]
                 ],
                 ("image",),
-                "test  pic.twitter.com",
+                "test pic.twitter.com",
                 15,
                 None,
                 (None, None)

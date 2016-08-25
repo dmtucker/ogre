@@ -20,6 +20,19 @@ from ogre.exceptions import OGReError, OGReLimitError
 from snowflake2time.snowflake import snowflake2utc, utc2snowflake
 
 
+def sanitized_twitter_keys(keys):
+    """Produce a santized copy of provided Twitter keys."""
+    try:
+        return {
+            'access_token': str(keys['access_token']),
+            'consumer_key': str(keys['consumer_key']),
+        }
+    except KeyError:
+        raise ValueError('Twitter API keys must include a "consumer_key" and "access_token".')
+    except TypeError:
+        raise ValueError('Twitter API keys must be specified as str objects.')
+
+
 def sanitize_twitter(
         keys,
         media=('image', 'text'),
@@ -64,16 +77,6 @@ def sanitize_twitter(
     :returns: Each passed parameter is returned (in order) in the proper format.
     """
 
-    try:
-        clean_keys = {
-            'access_token': str(keys['access_token']),
-            'consumer_key': str(keys['consumer_key']),
-        }
-    except KeyError:
-        raise ValueError('Twitter API keys must include a "consumer_key" and "access_token".')
-    except TypeError:
-        raise ValueError('Twitter API keys must be specified as str objects.')
-
     clean_media, clean_keyword, clean_quantity, clean_location, clean_interval = \
         sanitize(
             media=media,
@@ -83,19 +86,14 @@ def sanitize_twitter(
             interval=interval,
         )
 
-    kinds = []
-    if clean_media is not None:
-        for clean_medium in clean_media:
-            if clean_medium in ('image', 'text'):
-                kinds.append(clean_medium)
-    kinds = tuple(kinds)  # pylint: disable=redefined-variable-type
+    clean_media = tuple([medium for medium in clean_media if medium in ('image', 'text')])
 
-    keywords = clean_keyword
-    if kinds == ('image',):
-        keywords += '  pic.twitter.com'
-    elif kinds == ('text',):
-        keywords += ' -pic.twitter.com'
-    keywords = keywords.strip()
+    if len(clean_media) == 1:
+        clean_keyword += {
+            'image': ' pic.twitter.com',
+            'text': ' -pic.twitter.com',
+        }.get(clean_media[0])
+    clean_keyword = clean_keyword.strip()
 
     geocode = None
     if location is not None and clean_location[2] > 0:
@@ -111,13 +109,13 @@ def sanitize_twitter(
             utc2snowflake(clean_interval[1]),
         )
 
-    if keywords in ('', '-pic.twitter.com') and geocode is None:
+    if clean_keyword in ('', '-pic.twitter.com') and geocode is None:
         raise ValueError('Specify either a keyword or a location.')
 
     return (
-        clean_keys,
-        kinds,
-        keywords,
+        sanitized_twitter_keys(keys),
+        clean_media,
+        clean_keyword,
         clean_quantity,
         geocode,
         period_id,
