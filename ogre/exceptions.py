@@ -1,29 +1,24 @@
-"""
-OGRe Error Handler
-
-:class:`OGReError` -- retriever error template
-
-:class:`OGReLimitError` -- retriever limit error template
-"""
+"""OGRe Error Handler"""
 
 
 class OGReError(Exception):
 
     """Create exceptions that contain an origin reference and a message."""
 
-    def __init__(self, source="unknown", message="error"):
+    def __init__(self, message, source=None):
         super(OGReError, self).__init__()
-        self.source = source
         self.message = message
+        self.source = source
 
     def __str__(self):
-        return self.source+": "+self.message
+        return '{0}{1}'.format('' if self.source is None else self.source + ': ', self.message)
 
 
 class OGReLimitError(OGReError):
 
-    """Supplement OGReError with a reset timestamp."""
+    pass
 
-    def __init__(self, source="unknown", message="error", reset=None):
-        super(OGReLimitError, self).__init__(source, message)
-        self.reset = reset
+
+class OGReQueryError(OGReError):
+
+    pass

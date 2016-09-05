@@ -6,7 +6,10 @@ OGRe Query Handler
 :meth:`OGRe.fetch` -- method for making a retriever fetch data
 """
 
-from ogre.Twitter import twitter
+
+from __future__ import absolute_import
+
+import ogre.twitter
 
 
 class OGRe(object):  # pylint: disable=too-few-public-methods
@@ -31,24 +34,8 @@ class OGRe(object):  # pylint: disable=too-few-public-methods
 
         :type keys: dict
         :param keys: Specify dictionaries containing API keys for sources.
-
-        Keys that a retriever object is instantiated with may be accessed later
-        through the :attr:`keychain` attribute.
-
-        :raises: ValueError
-
-        .. note:: A :attr:`keyring` attribute maintains a mapping of the
-                  lowercase version of each key to the casing of the passed key.
-                  This enables you to pass a key with a name stylized in the
-                  manner of your choosing
-                  (e.g. twitter, Twitter, tWiTtEr, etc.).
         """
-        self.keyring = {}
-        for key in keys:
-            if key.lower() not in ['twitter']:
-                raise ValueError('Keys may include "Twitter" only.')
-            self.keyring[key.lower()] = key
-        self.keychain = keys
+        self.keys = {source.lower(): key for source, key in keys.items()}
 
     def fetch(
             self,
@@ -103,25 +90,24 @@ class OGRe(object):  # pylint: disable=too-few-public-methods
                   and that is where they are documented.
         """
 
-        source_map = {'twitter': twitter}
+        supported_sources = {'twitter': ogre.twitter.fetch}
 
         feature_collection = {
             'type': 'FeatureCollection',
             'features': [],
         }
         if media and quantity > 0:
-            for source in sources:
-                source = source.lower()
-                if source not in source_map:
-                    raise ValueError('Source may be "Twitter".')
-                for features in source_map[source](
-                        keys=self.keychain[self.keyring[source]],
-                        media=media,
-                        keyword=keyword,
-                        quantity=quantity,
-                        location=location,
-                        interval=interval,
+            for source in [source.lower() for source in sources]:
+                if source not in supported_sources:
+                    raise ValueError(
+                        '"{0}" is an unrecognized source.'
+                        ' Valid sources are {1}.'.format(source, supported_sources.keys()),
+                    )
+                feature_collection['features'].extend(
+                    supported_sources[source](
+                        ogre.objects.Query(*(media, keyword, quantity, location, interval)),
+                        self.keys[source],
                         **kwargs
-                ):
-                    feature_collection['features'].append(features)
+                    )['features'],
+                )
         return feature_collection

@@ -22,11 +22,9 @@ setup(
     author_email='dmtucker@ucsc.edu',
     license='LGPLv2+',
     url='https://github.com/dmtucker/ogre',
-    packages=find_packages(exclude=['docs']),
+    packages=find_packages(exclude=['docs', 'tests']),
     include_package_data=True,
-    test_suite="ogre.test",
     install_requires=[
-        'mock ~= 1.0.1',
         'twython ~= 3.4',
     ],
     entry_points={'console_scripts': ['ogre = ogre.cli:main']},

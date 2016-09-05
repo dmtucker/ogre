@@ -4,13 +4,15 @@ Make queries using OGRe directly.
 See https://ogre.readthedocs.org/en/latest/ for more information.
 """
 
+from __future__ import absolute_import
+
 import argparse
 import json
 import logging
 import os
 import sys
 
-from ogre import OGRe
+import ogre.api
 
 
 def cli(parser=None):
@@ -132,7 +134,7 @@ def main(argv=None):
 
     print(
         json.dumps(
-            OGRe(args.keys).fetch(
+            ogre.api.OGRe(args.keys).fetch(
                 sources=args.sources,
                 media=args.media,
                 keyword=args.keyword,
